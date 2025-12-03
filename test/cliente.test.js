@@ -147,7 +147,6 @@ describe("Cliente y la Renovación automática", () => {
     cliente.registrarConsumo("internet", 2);
     cliente.registrarConsumo("llamadas", 10);
     const paquete = cliente._getPaquete();
-    console.log(paquete.gb(), paquete.minutos());
     expect(paquete.gb()).toBe(2);
     expect(paquete.minutos()).toBe(10);
   });
