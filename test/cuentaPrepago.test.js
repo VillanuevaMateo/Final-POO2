@@ -4,7 +4,7 @@ const CuentaPrepago = require('../src/cuentaPrepago');
 describe('Cuenta Prepago', () => {
     test('debería crearse con saldo inicial', () => {
         const cuentaPrepago = new CuentaPrepago(100);
-        expect(cuentaPrepago.saldo).toBe(100);
+        expect(cuentaPrepago.consultarSaldo()).toBe(100);
     });
 
     test('debería permitir cargar saldo positivo', () => {

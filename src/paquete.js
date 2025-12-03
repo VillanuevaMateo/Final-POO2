@@ -1,43 +1,52 @@
-const Paquete = function (gb, minutos, duracionDias, costo) {
-  this.gb = gb;
-  this.minutos = minutos;
-  this.duracionDias = duracionDias;
-  this.costo = costo;
-  this.fechaCompra = new Date();
+const Paquete = (function () {
+  const Paquete = function (gb, minutos, duracionDias, costo) {
+    // Variable privada
+    function crearFechaCompra() {
+      const fechaCompra = new Date();
 
-  this.estaAgotado = function () {
-    return this.gb <= 0 && this.minutos <= 0;
-  };
-
-  this.estaVencido = function (fechaActual = new Date()) {
-    const fechaVencimiento = new Date(this.fechaCompra);
-    fechaVencimiento.setDate(fechaVencimiento.getDate() + this.duracionDias);
-    return fechaActual > fechaVencimiento;
-  };
-
-  this.descontarConsumo = function (tipo, cantidad) {
-    if (cantidad <= 0) {
-      throw new Error("La cantidad a consumir debe ser positiva");
+      return {
+        estaVencido: (fechaActual = new Date()) => {
+          const fechaVencimiento = new Date(fechaCompra);
+          fechaVencimiento.setDate(fechaVencimiento.getDate() + duracionDias);
+          return fechaActual > fechaVencimiento;
+        }
+      };
     }
 
-    if (tipo === "internet") {
-      if (cantidad > this.gb) {
-        throw new Error("No hay suficientes GB disponibles");
+    const privado = crearFechaCompra();
+
+    // Atributos públicos
+    this.gb = gb;
+    this.minutos = minutos;
+    this.duracionDias = duracionDias;
+    this.costo = costo;
+
+    // Métodos públicos
+    this.estaAgotado = () => this.gb <= 0 && this.minutos <= 0;
+    this.estaVencido = privado.estaVencido;
+
+    this.descontarConsumo = (tipo, cantidad) => {
+      if (cantidad <= 0)
+        throw new Error("La cantidad a consumir debe ser positiva");
+
+      if (tipo === "internet") {
+        if (cantidad > this.gb) throw new Error("No hay suficientes GB disponibles");
+        this.gb -= cantidad;
+        return true;
       }
-      this.gb -= cantidad;
-      return true;
-    }
 
-    if (tipo === "llamadas") {
-      if (cantidad > this.minutos) {
-        throw new Error("No hay suficientes minutos disponibles");
+      if (tipo === "llamadas") {
+        if (cantidad > this.minutos)
+          throw new Error("No hay suficientes minutos disponibles");
+        this.minutos -= cantidad;
+        return true;
       }
-      this.minutos -= cantidad;
-      return true;
-    }
 
-    throw new Error("Tipo de consumo desconocido");
+      throw new Error("Tipo de consumo desconocido");
+    };
   };
-};
+
+  return Paquete;
+})();
 
 module.exports = Paquete;

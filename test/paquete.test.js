@@ -8,7 +8,6 @@ describe("Paquete", () => {
     expect(paquete.minutos).toBe(1000);
     expect(paquete.duracionDias).toBe(30);
     expect(paquete.costo).toBe(400);
-    expect(paquete.fechaCompra).toBeDefined();
   });
   test("debería crear un paquete agotado correctamente", () => {
     const paquete = new Paquete(0, 0, 30, 400);
