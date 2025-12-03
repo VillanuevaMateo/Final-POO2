@@ -26,4 +26,23 @@ describe('Cuenta Prepago', () => {
         expect(resultado).toBe(true);
         expect(cuenta.consultarSaldo()).toBe(300);
     });
+    test('no debería permitir cargar un monto negativo', () => {
+    const cuenta = new CuentaPrepago(500);
+    cuenta.cargarSaldo(-200);
+    expect(cuenta.consultarSaldo()).toBe(500);
+});
+
+test('no debería permitir debitar si no hay saldo suficiente', () => {
+    const cuenta = new CuentaPrepago(100);
+    const resultado = cuenta.debitarMonto(200);
+    expect(resultado).toBe(false);
+    expect(cuenta.consultarSaldo()).toBe(100);
+});
+
+test('no debería permitir debitar un monto negativo', () => {
+    const cuenta = new CuentaPrepago(500);
+    const resultado = cuenta.debitarMonto(-100);
+    expect(resultado).toBe(false);
+    expect(cuenta.consultarSaldo()).toBe(500);
+});
 });
