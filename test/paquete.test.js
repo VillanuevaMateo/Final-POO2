@@ -44,36 +44,38 @@ describe("Paquete", () => {
     expect(resultado).toBe(true);
     expect(paquete.minutos).toBe(50);
   });
-
-  test("no debería permitir consumir más datos que los disponibles", () => {
-    const paquete = new Paquete(3, 100, 30, 400);
-    const resultado = paquete.descontarConsumo("internet", 10);
-    expect(resultado).toBe(false);
-    expect(paquete.gb).toBe(3);
-  });
-
-  test("no debería permitir consumir más minutos que los disponibles", () => {
-    const paquete = new Paquete(5, 50, 30, 400);
-    const resultado = paquete.descontarConsumo("llamadas", 100);
-    expect(resultado).toBe(false);
-    expect(paquete.minutos).toBe(50);
-  });
-
-  test("no debería permitir consumir cantidad negativa", () => {
+  test("no debería permitir consumir cantidad negativa de internet", () => {
     const paquete = new Paquete(5, 100, 30, 400);
-    const resultadoInternet = paquete.descontarConsumo("internet", -5);
-    const resultadoLlamadas = paquete.descontarConsumo("llamadas", -5);
-    expect(resultadoInternet).toBe(false);
-    expect(resultadoLlamadas).toBe(false);
-    expect(paquete.gb).toBe(5);
-    expect(paquete.minutos).toBe(100);
+    expect(() => paquete.descontarConsumo("internet", -5)).toThrow(
+      "La cantidad a consumir debe ser positiva"
+    );
+  });
+
+  test("no debería permitir consumir cantidad negativa de minutos", () => {
+    const paquete = new Paquete(5, 100, 30, 400);
+    expect(() => paquete.descontarConsumo("llamadas", -10)).toThrow(
+      "La cantidad a consumir debe ser positiva"
+    );
+  });
+
+  test("no debería permitir consumir más GB de los disponibles", () => {
+    const paquete = new Paquete(3, 100, 30, 400);
+    expect(() => paquete.descontarConsumo("internet", 10)).toThrow(
+      "No hay suficientes GB disponibles"
+    );
+  });
+
+  test("no debería permitir consumir más minutos de los disponibles", () => {
+    const paquete = new Paquete(5, 50, 30, 400);
+    expect(() => paquete.descontarConsumo("llamadas", 100)).toThrow(
+      "No hay suficientes minutos disponibles"
+    );
   });
 
   test("no debería permitir tipo de consumo desconocido", () => {
     const paquete = new Paquete(5, 100, 30, 400);
-    const resultado = paquete.descontarConsumo("sms", 10);
-    expect(resultado).toBe(false);
-    expect(paquete.gb).toBe(5);
-    expect(paquete.minutos).toBe(100);
+    expect(() => paquete.descontarConsumo("sms", 10)).toThrow(
+      "Tipo de consumo desconocido"
+    );
   });
 });

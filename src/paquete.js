@@ -1,37 +1,43 @@
-const Paquete = function(gb, minutos, duracionDias, costo) {
-    this.gb = gb;
-    this.minutos = minutos;
-    this.duracionDias = duracionDias;
-    this.costo = costo;
-    this.fechaCompra = new Date();
+const Paquete = function (gb, minutos, duracionDias, costo) {
+  this.gb = gb;
+  this.minutos = minutos;
+  this.duracionDias = duracionDias;
+  this.costo = costo;
+  this.fechaCompra = new Date();
 
-    this.estaAgotado = function() {
-        return this.gb <= 0 && this.minutos <= 0;
-    };
+  this.estaAgotado = function () {
+    return this.gb <= 0 && this.minutos <= 0;
+  };
 
-    this.estaVencido = function(fechaActual = new Date()) {
-        const fechaVencimiento = new Date(this.fechaCompra);
-        fechaVencimiento.setDate(fechaVencimiento.getDate() + this.duracionDias);
-        return fechaActual > fechaVencimiento;
-    };
+  this.estaVencido = function (fechaActual = new Date()) {
+    const fechaVencimiento = new Date(this.fechaCompra);
+    fechaVencimiento.setDate(fechaVencimiento.getDate() + this.duracionDias);
+    return fechaActual > fechaVencimiento;
+  };
 
-    this.descontarConsumo = function(tipo, cantidad) {
-        if (cantidad <= 0) return false;
+  this.descontarConsumo = function (tipo, cantidad) {
+    if (cantidad <= 0) {
+      throw new Error("La cantidad a consumir debe ser positiva");
+    }
 
-        if (tipo === 'internet') {
-            if (cantidad > this.gb) return false;
-            this.gb -= cantidad;
-            return true;
-        }
+    if (tipo === "internet") {
+      if (cantidad > this.gb) {
+        throw new Error("No hay suficientes GB disponibles");
+      }
+      this.gb -= cantidad;
+      return true;
+    }
 
-        if (tipo === 'llamadas') {
-            if (cantidad > this.minutos) return false;
-            this.minutos -= cantidad;
-            return true;
-        }
+    if (tipo === "llamadas") {
+      if (cantidad > this.minutos) {
+        throw new Error("No hay suficientes minutos disponibles");
+      }
+      this.minutos -= cantidad;
+      return true;
+    }
 
-        return false; // tipo desconocido
-    };
+    throw new Error("Tipo de consumo desconocido");
+  };
 };
 
 module.exports = Paquete;
