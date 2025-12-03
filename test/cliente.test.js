@@ -77,20 +77,20 @@ describe("Cliente consumo de Paquete", () => {
   test("debería descontar correctamente consumo de internet", () => {
     const cliente = new Cliente("Test", "111", 500);
     cliente.comprarPaquete(5, 100, 30, 200);
-    cliente.descontarConsumo("internet", 2);
+    cliente.registrarConsumo("internet", 2);
     expect(cliente._getPaquete().gb()).toBe(3);
   });
 
   test("debería descontar correctamente consumo de minutos", () => {
     const cliente = new Cliente("Test", "111", 500);
     cliente.comprarPaquete(5, 100, 30, 200);
-    cliente.descontarConsumo("llamadas", 50);
+    cliente.registrarConsumo("llamadas", 50);
     expect(cliente._getPaquete().minutos()).toBe(50);
   });
 
   test("no debería permitir consumo sin paquete activo", () => {
     const cliente = new Cliente("Test", "111", 500);
-    expect(() => cliente.descontarConsumo("internet", 1)).toThrow(
+    expect(() => cliente.registrarConsumo("internet", 1)).toThrow(
       "No hay paquete activo"
     );
   });
@@ -98,7 +98,7 @@ describe("Cliente consumo de Paquete", () => {
   test("no debería permitir consumir más GB que los disponibles", () => {
     const cliente = new Cliente("Test", "111", 500);
     cliente.comprarPaquete(3, 100, 30, 200);
-    expect(() => cliente.descontarConsumo("internet", 5)).toThrow(
+    expect(() => cliente.registrarConsumo("internet", 5)).toThrow(
       "No hay suficientes GB disponibles"
     );
   });
@@ -106,7 +106,7 @@ describe("Cliente consumo de Paquete", () => {
   test("no debería permitir consumir más minutos que los disponibles", () => {
     const cliente = new Cliente("Test", "111", 500);
     cliente.comprarPaquete(5, 50, 30, 200);
-    expect(() => cliente.descontarConsumo("llamadas", 100)).toThrow(
+    expect(() => cliente.registrarConsumo("llamadas", 100)).toThrow(
       "No hay suficientes minutos disponibles"
     );
   });
@@ -116,13 +116,13 @@ describe("Cliente y el vencimiento del Paquete", () => {
   test("debería detectar si el paquete está agotado", () => {
     const cliente = new Cliente("Test", "111", 500);
     cliente.comprarPaquete(0, 0, 30, 200);
-    expect(cliente.estaPaqueteAgotado()).toBe(true);
+    expect(cliente._getPaquete().estaAgotado()).toBe(true);
   });
 
   test("debería detectar si el paquete no está agotado", () => {
     const cliente = new Cliente("Test", "111", 500);
     cliente.comprarPaquete(5, 100, 30, 200);
-    expect(cliente.estaPaqueteAgotado()).toBe(false);
+    expect(cliente._getPaquete().estaAgotado()).toBe(false);
   });
 
   test("debería detectar si el paquete está vencido usando fecha futura", () => {
@@ -136,7 +136,7 @@ describe("Cliente y el vencimiento del Paquete", () => {
   test("debería detectar si el paquete no está vencido", () => {
     const cliente = new Cliente("Test", "111", 500);
     cliente.comprarPaquete(5, 100, 30, 200);
-    expect(cliente.estaPaqueteVencido()).toBe(false);
+    expect(cliente._getPaquete().estaVencido()).toBe(false);
   });
 });
 
@@ -144,19 +144,106 @@ describe("Cliente y la Renovación automática", () => {
   test("debería renovar automáticamente un paquete agotado si está activada la opción", () => {
     const cliente = new Cliente("Test", "111", 500);
     cliente.comprarPaquete(2, 10, 30, 200, true);
-    cliente.descontarConsumo("internet", 2);
-    cliente.descontarConsumo("llamadas", 10);
+    cliente.registrarConsumo("internet", 2);
+    cliente.registrarConsumo("llamadas", 10);
     const paquete = cliente._getPaquete();
+    console.log(paquete.gb(), paquete.minutos());
     expect(paquete.gb()).toBe(2);
     expect(paquete.minutos()).toBe(10);
   });
   test("no debería renovar automáticamente un paquete agotado si está desactivada la opción", () => {
     const cliente = new Cliente("Test", "111", 500);
     cliente.comprarPaquete(2, 10, 30, 200, false);
-    cliente.descontarConsumo("internet", 2);
-    cliente.descontarConsumo("llamadas", 10);
+    cliente.registrarConsumo("internet", 2);
+    cliente.registrarConsumo("llamadas", 10);
     const paquete = cliente._getPaquete();
     expect(paquete.gb()).toBe(0);
     expect(paquete.minutos()).toBe(0);
+  });
+});
+
+describe("Cliente y registro de consumos", () => {
+  test("debería poder registrar un consumo de internet correctamente", () => {
+    const cliente = new Cliente("Test", "111", 500);
+    cliente.comprarPaquete(5, 100, 30, 200);
+
+    const consumo = cliente.registrarConsumo(
+      "internet",
+      2,
+      new Date(),
+      new Date()
+    );
+
+    expect(consumo.getTipo()).toBe("internet");
+    expect(consumo.getCantidad()).toBe(2);
+    expect(cliente.getHistorialConsumos().length).toBe(1);
+  });
+
+  test("debería poder registrar un consumo de llamadas correctamente", () => {
+    const cliente = new Cliente("Test", "111", 500);
+    cliente.comprarPaquete(5, 100, 30, 200);
+
+    const consumo = cliente.registrarConsumo(
+      "llamadas",
+      50,
+      new Date(),
+      new Date()
+    );
+
+    expect(consumo.getTipo()).toBe("llamadas");
+    expect(consumo.getCantidad()).toBe(50);
+    expect(cliente.getHistorialConsumos().length).toBe(1);
+  });
+
+  test("no debería permitir registrar un consumo si no hay paquete activo", () => {
+    const cliente = new Cliente("Test", "111", 500);
+
+    expect(() =>
+      cliente.registrarConsumo("internet", 2, new Date(), new Date())
+    ).toThrow("No hay paquete activo");
+  });
+
+  test("no debería permitir registrar un consumo mayor al disponible en el paquete", () => {
+    const cliente = new Cliente("Test", "111", 500);
+    cliente.comprarPaquete(3, 100, 30, 200);
+
+    expect(() =>
+      cliente.registrarConsumo("internet", 5, new Date(), new Date())
+    ).toThrow("No hay suficientes GB disponibles");
+
+    expect(() =>
+      cliente.registrarConsumo("llamadas", 200, new Date(), new Date())
+    ).toThrow("No hay suficientes minutos disponibles");
+  });
+
+  test("no debería permitir registrar un consumo con cantidad negativa", () => {
+    const cliente = new Cliente("Test", "111", 500);
+    cliente.comprarPaquete(5, 100, 30, 200);
+
+    expect(() =>
+      cliente.registrarConsumo("internet", -5, new Date(), new Date())
+    ).toThrow("La cantidad a consumir debe ser positiva");
+
+    expect(() =>
+      cliente.registrarConsumo("llamadas", -10, new Date(), new Date())
+    ).toThrow("La cantidad a consumir debe ser positiva");
+  });
+
+  test("debería guardar los consumos en el historial y permitir filtrarlos por fecha", () => {
+    const cliente = new Cliente("Test", "111", 500);
+    cliente.comprarPaquete(5, 100, 30, 200);
+
+    const hoy = new Date();
+    const ayer = new Date();
+    ayer.setDate(ayer.getDate() - 1);
+
+    const consumo1 = cliente.registrarConsumo("internet", 1, ayer, ayer);
+    const consumo2 = cliente.registrarConsumo("llamadas", 10, hoy, hoy);
+
+    const historialCompleto = cliente.getHistorialConsumos();
+    expect(historialCompleto.length).toBe(2);
+
+    const filtrado = cliente.getHistorialConsumos(ayer, hoy);
+    expect(filtrado.length).toBe(2);
   });
 });

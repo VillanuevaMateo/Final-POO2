@@ -1,44 +1,44 @@
-const CuentaPrepago = require("./cuentaPrepago");
 const Paquete = require("./paquete");
+const Consumo = require("./consumo");
 
-const Cliente = function (nombreCompleto, numeroLinea, saldoInicial = 0) {
+const Cliente = function(nombreCompleto, numeroLinea, saldoInicial = 0) {
   this.nombreCompleto = nombreCompleto;
   this.numeroLinea = numeroLinea;
 
   // Cuenta prepago privada
-  const cuenta = new CuentaPrepago(saldoInicial);
-  this._getCuenta = () => cuenta;
+  const _cuenta = new (require("./cuentaPrepago"))(saldoInicial);
+  this._getCuenta = () => _cuenta;
 
-  // Paquete privado y flag de renovación automática
-  let paqueteActual = null;
-  let renovacionAutomatica = false;
-
-  this._getPaquete = () => paqueteActual;
-  this._getRenovacionAutomatica = () => renovacionAutomatica;
-
-  this._setPaquete = (nuevoPaquete, renovar = false) => {
-    paqueteActual = nuevoPaquete;
-    renovacionAutomatica = renovar;
+  // Paquete privado
+  let _paquete = null;
+  let _renovacionAutomatica = false;
+  this._getPaquete = () => _paquete;
+  this._setPaquete = (paquete, renovar) => {
+    _paquete = paquete;
+    _renovacionAutomatica = renovar;
   };
+  this._getRenovacionAutomatica = () => _renovacionAutomatica;
+
+  // Historial de consumos privado
+  const _historialConsumos = [];
+  this._getHistorialConsumos = () => _historialConsumos;
 };
 
-// Métodos de la cuenta en prototipo
-
-Cliente.prototype.consultarSaldo = function () {
+// Métodos de la cuenta prepago
+Cliente.prototype.consultarSaldo = function() {
   return this._getCuenta().consultarSaldo();
 };
 
-Cliente.prototype.cargarSaldo = function (monto) {
+Cliente.prototype.cargarSaldo = function(monto) {
   this._getCuenta().cargarSaldo(monto);
 };
 
-Cliente.prototype.debitarMonto = function (monto) {
+Cliente.prototype.debitarMonto = function(monto) {
   return this._getCuenta().debitarMonto(monto);
 };
 
-// Métodos del paquete en prototipo
-
-Cliente.prototype.comprarPaquete = function (
+// Comprar paquete
+Cliente.prototype.comprarPaquete = function(
   gb,
   minutos,
   duracionDias,
@@ -48,11 +48,7 @@ Cliente.prototype.comprarPaquete = function (
   const paqueteActual = this._getPaquete();
   const cuenta = this._getCuenta();
 
-  if (
-    paqueteActual &&
-    !paqueteActual.estaAgotado() &&
-    !paqueteActual.estaVencido()
-  ) {
+  if (paqueteActual && !paqueteActual.estaAgotado() && !paqueteActual.estaVencido()) {
     throw new Error("Ya existe un paquete activo");
   }
 
@@ -65,11 +61,17 @@ Cliente.prototype.comprarPaquete = function (
   return nuevoPaquete;
 };
 
-Cliente.prototype.descontarConsumo = function (tipo, cantidad) {
+// Descontar consumo y registrar en historial
+Cliente.prototype.registrarConsumo = function(tipo, cantidad, fechaInicio, fechaFin) {
   const paqueteActual = this._getPaquete();
   if (!paqueteActual) throw new Error("No hay paquete activo");
 
-  const resultado = paqueteActual.descontarConsumo(tipo, cantidad);
+  // Descontar del paquete (lanza errores si no se puede)
+  paqueteActual.descontarConsumo(tipo, cantidad);
+
+  // Crear un consumo y guardarlo en el historial
+  const consumo = new Consumo(tipo, cantidad, fechaInicio, fechaFin);
+  this._getHistorialConsumos().push(consumo);
 
   // Renovación automática
   if (
@@ -85,19 +87,21 @@ Cliente.prototype.descontarConsumo = function (tipo, cantidad) {
     );
   }
 
-  return resultado;
+  return consumo;
 };
 
-Cliente.prototype.estaPaqueteAgotado = function () {
-  const paqueteActual = this._getPaquete();
-  if (!paqueteActual) return true;
-  return paqueteActual.estaAgotado();
-};
+// Obtener historial de consumos, opcionalmente filtrado por fechas
+Cliente.prototype.getHistorialConsumos = function(fechaInicio, fechaFin) {
+  let historial = this._getHistorialConsumos();
 
-Cliente.prototype.estaPaqueteVencido = function () {
-  const paqueteActual = this._getPaquete();
-  if (!paqueteActual) return true;
-  return paqueteActual.estaVencido();
+  if (fechaInicio) {
+    historial = historial.filter(c => c.getFechaInicio() >= fechaInicio);
+  }
+  if (fechaFin) {
+    historial = historial.filter(c => c.getFechaInicio() <= fechaFin);
+  }
+
+  return historial;
 };
 
 module.exports = Cliente;
