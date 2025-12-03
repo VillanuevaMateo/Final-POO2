@@ -150,4 +150,13 @@ describe("Cliente y la Renovación automática", () => {
     expect(paquete.gb()).toBe(2);
     expect(paquete.minutos()).toBe(10);
   });
+  test("no debería renovar automáticamente un paquete agotado si está desactivada la opción", () => {
+    const cliente = new Cliente("Test", "111", 500);
+    cliente.comprarPaquete(2, 10, 30, 200, false);
+    cliente.descontarConsumo("internet", 2);
+    cliente.descontarConsumo("llamadas", 10);
+    const paquete = cliente._getPaquete();
+    expect(paquete.gb()).toBe(0);
+    expect(paquete.minutos()).toBe(0);
+  });
 });

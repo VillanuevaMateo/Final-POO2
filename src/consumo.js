@@ -12,7 +12,7 @@ const Consumo = function (tipo, cantidad, fechaInicio, fechaFin) {
   let _fechaInicio = fechaInicio;
   let _fechaFin = fechaFin;
 
-  // Getters privados para usar desde prototype
+  // Getters privados
   this._getTipo = () => _tipo;
   this._getCantidad = () => _cantidad;
   this._getFechaInicio = () => _fechaInicio;
