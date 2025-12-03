@@ -1,11 +1,11 @@
 const Paquete = function (gb, minutos, duracionDias, costo) {
-    let _gbIniciales = gb;
-    let _minutosIniciales = minutos;
+  const _gbIniciales = gb;
+  const _minutosIniciales = minutos;
   let _gb = gb;
   let _minutos = minutos;
-  let _duracionDias = duracionDias;
-  let _costo = costo;
-  let _fechaCompra = new Date();
+  const _duracionDias = duracionDias;
+  const _costo = costo;
+  const _fechaCompra = new Date();
 
   // -------- Métodos privados --------
   const estaAgotadoPriv = () => _gb <= 0 && _minutos <= 0;
@@ -17,7 +17,8 @@ const Paquete = function (gb, minutos, duracionDias, costo) {
   };
 
   const descontarConsumoPriv = (tipo, cantidad) => {
-    if (cantidad <= 0) throw new Error("La cantidad a consumir debe ser positiva");
+    if (cantidad <= 0)
+      throw new Error("La cantidad a consumir debe ser positiva");
 
     if (tipo === "internet") {
       if (cantidad > _gb) throw new Error("No hay suficientes GB disponibles");
@@ -26,7 +27,8 @@ const Paquete = function (gb, minutos, duracionDias, costo) {
     }
 
     if (tipo === "llamadas") {
-      if (cantidad > _minutos) throw new Error("No hay suficientes minutos disponibles");
+      if (cantidad > _minutos)
+        throw new Error("No hay suficientes minutos disponibles");
       _minutos -= cantidad;
       return true;
     }
@@ -44,7 +46,8 @@ const Paquete = function (gb, minutos, duracionDias, costo) {
   this.minutosIniciales = () => _minutosIniciales;
   this.estaAgotado = () => estaAgotadoPriv();
   this.estaVencido = (fechaActual) => estaVencidoPriv(fechaActual);
-  this.descontarConsumo = (tipo, cantidad) => descontarConsumoPriv(tipo, cantidad);
+  this.descontarConsumo = (tipo, cantidad) =>
+    descontarConsumoPriv(tipo, cantidad);
 };
 
 module.exports = Paquete;
