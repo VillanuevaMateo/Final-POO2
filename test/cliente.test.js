@@ -11,6 +11,6 @@ describe('Cliente', () => {
     test('debería crearse con una cuenta bancaria con saldo inicial', () => {
         const cliente = new Cliente('Mateo Villanueva', '1155555555', 500);
 
-        expect(cliente.cuentaPrepago.consultarSaldo()).toBe(500);
+        expect(cliente.consultarSaldo()).toBe(500);
     });
 });
