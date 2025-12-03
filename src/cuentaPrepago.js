@@ -1,30 +1,29 @@
 const CuentaPrepago = (function () {
   const CuentaPrepago = function (saldoInicial = 0) {
-    // Variable "privada" por closure
-    function crearSaldo() {
-      let saldo = saldoInicial;
+    // Variable privada
+    const _saldo = { valor: saldoInicial };
+    this._getSaldo = () => _saldo;
+  };
 
-      return {
-        consultarSaldo: () => saldo,
-        cargarSaldo: (monto) => { if (monto > 0) saldo += monto; },
-        debitarMonto: (monto) => {
-          if (monto > 0 && monto <= saldo) {
-            saldo -= monto;
-            return true;
-          }
-          return false;
-        }
-      };
+  // Métodos en el prototipo
+  CuentaPrepago.prototype.consultarSaldo = function () {
+    return this._getSaldo().valor;
+  };
+
+  CuentaPrepago.prototype.cargarSaldo = function (monto) {
+    if (monto > 0) this._getSaldo().valor += monto;
+  };
+
+  CuentaPrepago.prototype.debitarMonto = function (monto) {
+    const saldoObj = this._getSaldo();
+    if (monto > 0 && monto <= saldoObj.valor) {
+      saldoObj.valor -= monto;
+      return true;
     }
-
-    // Exponer métodos públicos
-    const metodos = crearSaldo();
-    this.consultarSaldo = metodos.consultarSaldo;
-    this.cargarSaldo = metodos.cargarSaldo;
-    this.debitarMonto = metodos.debitarMonto;
+    return false;
   };
 
   return CuentaPrepago;
-})(); 
+})();
 
 module.exports = CuentaPrepago;
