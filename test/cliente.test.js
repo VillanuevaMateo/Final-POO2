@@ -1,13 +1,15 @@
 const Cliente = require("../src/Cliente");
 
-describe("Cliente", () => {
+describe("creacion de Cliente", () => {
   test("debería crearse con nombre completo, número de línea y saldo inicial", () => {
     const cliente = new Cliente("Mateo Villanueva", "1234567890", 500);
     expect(cliente.nombreCompleto).toBe("Mateo Villanueva");
     expect(cliente.numeroLinea).toBe("1234567890");
     expect(cliente.consultarSaldo()).toBe(500);
   });
+});
 
+describe("Cliente y Cuenta Prepago", () => {
   test("debería poder consultar saldo inicial correctamente", () => {
     const cliente = new Cliente("Ana Pérez", "0987654321", 200);
     expect(cliente.consultarSaldo()).toBe(200);
@@ -47,3 +49,105 @@ describe("Cliente", () => {
   });
 });
 
+describe("Cliente y la compra del Paquete", () => {
+  test("debería permitir comprar un paquete si no hay activo", () => {
+    const cliente = new Cliente("Test", "111", 500);
+    const paquete = cliente.comprarPaquete(5, 100, 30, 200);
+    expect(paquete.gb()).toBe(5);
+    expect(paquete.minutos()).toBe(100);
+  });
+
+  test("no debería permitir comprar paquete si ya hay uno activo", () => {
+    const cliente = new Cliente("Test", "111", 500);
+    cliente.comprarPaquete(5, 100, 30, 200);
+    expect(() => cliente.comprarPaquete(3, 50, 15, 100)).toThrow(
+      "Ya existe un paquete activo"
+    );
+  });
+
+  test("no debería permitir comprar paquete si saldo insuficiente", () => {
+    const cliente = new Cliente("Test", "111", 50);
+    expect(() => cliente.comprarPaquete(5, 100, 30, 100)).toThrow(
+      "Saldo insuficiente para comprar el paquete"
+    );
+  });
+});
+
+describe("Cliente consumo de Paquete", () => {
+  test("debería descontar correctamente consumo de internet", () => {
+    const cliente = new Cliente("Test", "111", 500);
+    cliente.comprarPaquete(5, 100, 30, 200);
+    cliente.descontarConsumo("internet", 2);
+    expect(cliente._getPaquete().gb()).toBe(3);
+  });
+
+  test("debería descontar correctamente consumo de minutos", () => {
+    const cliente = new Cliente("Test", "111", 500);
+    cliente.comprarPaquete(5, 100, 30, 200);
+    cliente.descontarConsumo("llamadas", 50);
+    expect(cliente._getPaquete().minutos()).toBe(50);
+  });
+
+  test("no debería permitir consumo sin paquete activo", () => {
+    const cliente = new Cliente("Test", "111", 500);
+    expect(() => cliente.descontarConsumo("internet", 1)).toThrow(
+      "No hay paquete activo"
+    );
+  });
+
+  test("no debería permitir consumir más GB que los disponibles", () => {
+    const cliente = new Cliente("Test", "111", 500);
+    cliente.comprarPaquete(3, 100, 30, 200);
+    expect(() => cliente.descontarConsumo("internet", 5)).toThrow(
+      "No hay suficientes GB disponibles"
+    );
+  });
+
+  test("no debería permitir consumir más minutos que los disponibles", () => {
+    const cliente = new Cliente("Test", "111", 500);
+    cliente.comprarPaquete(5, 50, 30, 200);
+    expect(() => cliente.descontarConsumo("llamadas", 100)).toThrow(
+      "No hay suficientes minutos disponibles"
+    );
+  });
+});
+
+describe("Cliente y el vencimiento del Paquete", () => {
+  test("debería detectar si el paquete está agotado", () => {
+    const cliente = new Cliente("Test", "111", 500);
+    cliente.comprarPaquete(0, 0, 30, 200);
+    expect(cliente.estaPaqueteAgotado()).toBe(true);
+  });
+
+  test("debería detectar si el paquete no está agotado", () => {
+    const cliente = new Cliente("Test", "111", 500);
+    cliente.comprarPaquete(5, 100, 30, 200);
+    expect(cliente.estaPaqueteAgotado()).toBe(false);
+  });
+
+  test("debería detectar si el paquete está vencido usando fecha futura", () => {
+    const cliente = new Cliente("Test", "111", 500);
+    cliente.comprarPaquete(5, 100, 1, 200);
+    const fechaFutura = new Date();
+    fechaFutura.setDate(fechaFutura.getDate() + 2);
+    expect(cliente._getPaquete().estaVencido(fechaFutura)).toBe(true);
+  });
+
+  test("debería detectar si el paquete no está vencido", () => {
+    const cliente = new Cliente("Test", "111", 500);
+    cliente.comprarPaquete(5, 100, 30, 200);
+    expect(cliente.estaPaqueteVencido()).toBe(false);
+  });
+});
+
+describe("Cliente y la Renovación automática", () => {
+  test("debería renovar automáticamente un paquete agotado si está activada la opción", () => {
+    const cliente = new Cliente("Test", "111", 500);
+    cliente.comprarPaquete(2, 10, 30, 200, true);
+    cliente.descontarConsumo("internet", 2);
+    cliente.descontarConsumo("llamadas", 10);
+    const paquete = cliente._getPaquete();
+    expect(paquete.gb()).toBe(2);
+    expect(paquete.minutos()).toBe(10);
+  });
+});

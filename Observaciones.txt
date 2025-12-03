@@ -1,0 +1,90 @@
+EXPLICACIONES DE DISEÑO Y BUENAS PRÁCTICAS — PROYECTO POO2
+
+MÉTODOS EN EL PROTOTIPO VS MÉTODOS EN EL CONSTRUCTOR
+
+Decidí definir los métodos de las “clases” usando la forma de prototipo:
+
+Clase.prototype.metodo = function() { ... }
+
+
+en lugar de ponerlos dentro del constructor porque:
+
+Eficiencia de memoria:
+Cada instancia comparte la misma función. Si pongo el método dentro del constructor, cada objeto tendría su propia copia, lo que es innecesario y consume más memoria. Ademas esta en la diapositiva nro. 20 de 'Prototipos en detalle' dada en clase
+
+Separación de responsabilidades:
+El constructor se encarga solo de inicializar propiedades; los métodos del prototipo definen comportamientos de la clase. Esto hace que el código sea más claro.
+
+Compatibilidad con herencia:
+Si más adelante creo una subclase, los métodos del prototipo se heredan automáticamente.
+
+Ejemplo:
+
+Cliente.prototype.consultarSaldo = function() {
+    return this._getCuenta().consultarSaldo();
+};
+
+
+ENCAPSULAMIENTO Y MODULE PATTERN
+
+Algunas partes del sistema usan módulos para mantener estado privado. Ejemplo: la CuentaPrepago.
+
+const CuentaPrepago = (function() {
+    let saldoPrivado = 0;
+
+    function CuentaPrepago(inicial) {
+        saldoPrivado = inicial;
+    }
+
+    CuentaPrepago.prototype.consultarSaldo = function() {
+        return saldoPrivado;
+    };
+
+    return CuentaPrepago;
+})();
+
+
+Por qué lo hago así:
+
+Privacidad:
+Variables como saldoPrivado no pueden ser modificadas directamente desde fuera del módulo. Solo se accede mediante métodos públicos.
+
+Control de acceso:
+Permite validar operaciones antes de modificar el estado (por ejemplo, que no se pueda cargar saldo negativo).
+
+Flexibilidad:
+Si mañana quiero cambiar la implementación interna (por ejemplo, guardar saldo en un backend), solo modifico el módulo.
+
+BUENAS PRÁCTICAS GENERALES QUE INTENTO SEGUIR
+
+Separación de responsabilidades:
+
+    Constructor → inicializa datos;
+
+    prototipo → define comportamientos;
+
+    módulo → mantiene estado privado.
+
+Uso de métodos públicos para acceder a datos:
+
+Nunca hago cliente.cuentaPrepago.saldo = X directamente;
+siempre uso consultarSaldo(), cargarSaldo(), etc.
+Esto permite controlar la lógica y evita errores.
+
+Consistencia:
+Todos los métodos similares están en el prototipo;
+todos los estados privados están dentro de módulos.
+Esto facilita leer y mantener el código.
+
+Reutilización y herencia:
+Prototipos y módulos permiten crear subclases o extender funcionalidades sin duplicar código.
+
+PENSAMIENTO DETRÁS DE CADA DECISIÓN
+
+Por qué prototipos: eficiencia + claridad + herencia. (ADEMAS QUE ERA EL CENTRO DE LA MATERIA)
+
+Por qué módulos: encapsulamiento + privacidad + control de acceso.
+
+Por qué métodos públicos: protección del estado + consistencia + validaciones posibles.
+
+Por qué separar constructor de métodos: constructor = datos; métodos = comportamientos.
