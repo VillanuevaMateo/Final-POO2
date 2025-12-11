@@ -1,49 +1,27 @@
-const Consumo = function (tipo, cantidad, fechaInicio, fechaFin) {
-  // --- Validaciones privadas ---
-  const validarTipo = (t) => {
-    if (t !== "internet" && t !== "llamadas") {
-      throw new Error("Tipo de consumo desconocido");
-    }
-  };
 
-  const validarCantidad = (c) => {
-    if (c <= 0) {
-      throw new Error("La cantidad a consumir debe ser positiva");
-    }
-  };
+const Consumo = function(tipo, cantidad, fechaInicio, fechaFin, app = "No especificado") {
+  // Validaciones generales
+  if (tipo !== "internet" && tipo !== "llamadas") {
+    throw new Error("Tipo de consumo desconocido");
+  }
+  if (cantidad <= 0) {
+    throw new Error("La cantidad a consumir debe ser positiva");
+  }
 
-  // Ejecutamos validaciones
-  validarTipo(tipo);
-  validarCantidad(cantidad);
-
-  // --- Propiedades privadas ---
-  let _tipo = tipo;
+    // Variables privadas
   let _cantidad = cantidad;
-  let _fechaInicio = fechaInicio ?? null;
-  let _fechaFin = fechaFin ?? null;
+  let _fechaInicio = fechaInicio;
+  let _fechaFin = fechaFin;
+  let _app = app;
+  let _tipo = tipo;
 
-  // Getters privados
-  this._getTipo = () => _tipo;
-  this._getCantidad = () => _cantidad;
-  this._getFechaInicio = () => _fechaInicio;
-  this._getFechaFin = () => _fechaFin;
-};
-
-// --- Métodos públicos ---
-Consumo.prototype.getTipo = function () {
-  return this._getTipo();
-};
-
-Consumo.prototype.getCantidad = function () {
-  return this._getCantidad();
-};
-
-Consumo.prototype.getFechaInicio = function () {
-  return this._getFechaInicio();
-};
-
-Consumo.prototype.getFechaFin = function () {
-  return this._getFechaFin();
+  // Getters públicos
+  this.getTipo = () => _tipo;
+  this.getCantidad = () => _cantidad;
+  this.getFechaInicio = () => _fechaInicio;
+  this.getFechaFin = () => _fechaFin;
+  this.getApp = () => _app;
 };
 
 module.exports = Consumo;
+

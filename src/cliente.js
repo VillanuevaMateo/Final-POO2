@@ -96,16 +96,16 @@ Cliente.prototype.registrarConsumo = function (
   tipo,
   cantidad,
   fechaInicio,
-  fechaFin
+  fechaFin,
+  app = 'Navegador'
 ) {
   const paqueteActual = this._getPaquete();
   if (!paqueteActual) {
     throw new Error("No hay paquete activo");
   }
 
-  paqueteActual.descontarConsumo(tipo, cantidad);
-
-  const consumo = new Consumo(tipo, cantidad, fechaInicio, fechaFin);
+  paqueteActual.descontarConsumo(tipo, cantidad, app);
+  const consumo = new Consumo(tipo, cantidad, fechaInicio, fechaFin, app);
   this._registrarConsumoEnHistorial(consumo);
 
   // Renovación automática

@@ -236,8 +236,8 @@ describe("Cliente y registro de consumos", () => {
     const ayer = new Date();
     ayer.setDate(ayer.getDate() - 1);
 
-    const consumo1 = cliente.registrarConsumo("internet", 1, ayer, ayer);
-    const consumo2 = cliente.registrarConsumo("llamadas", 10, hoy, hoy);
+    cliente.registrarConsumo("internet", 1, ayer, ayer);
+    cliente.registrarConsumo("llamadas", 10, hoy, hoy);
 
     const historialCompleto = cliente.getHistorialConsumos();
     expect(historialCompleto.length).toBe(2);
