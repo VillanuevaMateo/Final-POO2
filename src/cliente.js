@@ -94,8 +94,8 @@ Cliente.prototype.comprarPaquete = function (
 Cliente.prototype.registrarConsumo = function (
   tipo,
   cantidad,
-  fechaInicio,
-  fechaFin,
+  fechaInicio = new Date(),
+  fechaFin = fechaInicio,
   app = 'Navegador'
 ) {
   const paqueteActual = this._getPaquete();
