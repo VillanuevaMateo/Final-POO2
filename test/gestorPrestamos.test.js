@@ -1,6 +1,5 @@
 const Cliente = require("../src/Cliente");
 const GestorPrestamos = require("../src/gestorPrestamos");
-const Paquete = require("../src/paquete");
 const Prestamo = require("../src/prestamo");
 
 describe("Gestor de Préstamos", () => {
