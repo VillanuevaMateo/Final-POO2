@@ -9,9 +9,9 @@ describe("Prestamo", () => {
     const inicio = new Date(2024, 0, 1);
     const venc = new Date(2024, 0, 10);
 
-    const p = new Prestamo("datos", 300, inicio, venc, donante, receptor);
+    const p = new Prestamo("internet", 300, inicio, venc, donante, receptor);
 
-    expect(p.tipoPrestamo()).toBe("datos");
+    expect(p.tipoPrestamo()).toBe("internet");
     expect(p.cantidadPrestada()).toBe(300);
     expect(p.fechaDeInicio()).toBe(inicio);
     expect(p.fechaDeVencimiento()).toBe(venc);
@@ -21,7 +21,7 @@ describe("Prestamo", () => {
 
   test("debería indicar que está vencido si la fecha consultada es posterior al vencimiento", () => {
     const p = new Prestamo(
-      "minutos",
+      "llamadas",
       20,
       new Date(2024, 0, 1),
       new Date(2024, 0, 5),
@@ -34,7 +34,7 @@ describe("Prestamo", () => {
 
   test("debería indicar que no está vencido si la fecha consultada es anterior al vencimiento", () => {
     const p = new Prestamo(
-      "minutos",
+      "llamadas",
       20,
       new Date(2024, 0, 1),
       new Date(2024, 0, 5),
@@ -47,7 +47,7 @@ describe("Prestamo", () => {
 
   test("debería indicar vencido si la fecha consultada es igual a la de vencimiento", () => {
     const p = new Prestamo(
-      "minutos",
+      "llamadas",
       20,
       new Date(2024, 0, 1),
       new Date(2024, 0, 5),

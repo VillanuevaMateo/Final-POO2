@@ -32,6 +32,12 @@ const Paquete = function (
 
   this._getAppIlimitada = () => _appIlimitada;
 
+  this._getVencimiento = () => {
+    const fechaVencimiento = new Date(_fechaCompra);
+    fechaVencimiento.setDate(fechaVencimiento.getDate() + _duracionDias);
+    return fechaVencimiento;
+  };
+
   // ===== VALIDACIONES PRIVADAS =====
   this._validarCantidadPositiva = (cantidad) => {
     if (cantidad <= 0) throw new Error("La cantidad a consumir debe ser positiva");
@@ -102,6 +108,10 @@ Paquete.prototype.costo = function () {
 
 Paquete.prototype.appIlimitada = function () {
   return this._getAppIlimitada();
+};
+
+Paquete.prototype.fechaDeVencimiento = function () {
+  return this._getVencimiento();
 };
 
 Paquete.prototype.estaAgotado = function () {

@@ -25,9 +25,26 @@ const Cliente = function (nombreCompleto, numeroLinea, saldoInicial = 0) {
 
   this._getRenovacionAutomatica = () => _renovacionAutomatica;
 
-  // Historial de consumos
   const _historialConsumos = [];
   this._getHistorialConsumos = () => _historialConsumos;
+
+  // ----------------------------------------
+  //  ATRIBUTOS PRIVADOS: PRÉSTAMOS
+  // ----------------------------------------
+
+  const _historialPrestamosOtorgados = [];
+  const _historialPrestamosRecibidos = [];
+
+  this._getPrestamosOtorgados = () => _historialPrestamosOtorgados;
+  this._getPrestamosRecibidos = () => _historialPrestamosRecibidos;
+
+  this._registrarPrestamoOtorgado = (prestamo) => {
+    _historialPrestamosOtorgados.push(prestamo);
+  };
+
+  this._registrarPrestamoRecibido = (prestamo) => {
+    _historialPrestamosRecibidos.push(prestamo);
+  };
 
   // -------------------------
   //      MÉTODOS PRIVADOS
@@ -42,6 +59,8 @@ const Cliente = function (nombreCompleto, numeroLinea, saldoInicial = 0) {
   this._registrarConsumoEnHistorial = (consumo) => {
     _historialConsumos.push(consumo);
   };
+  
+this.tienePaqueteActivo = () => _tienePaqueteActivo();
 };
 
 // ---------------------------------------
@@ -96,7 +115,7 @@ Cliente.prototype.registrarConsumo = function (
   cantidad,
   fechaInicio = new Date(),
   fechaFin = fechaInicio,
-  app = 'Navegador'
+  app = "Navegador"
 ) {
   const paqueteActual = this._getPaquete();
   if (!paqueteActual) {
@@ -139,6 +158,60 @@ Cliente.prototype.getHistorialConsumos = function (fechaInicio, fechaFin) {
   }
 
   return historial;
+};
+
+// ---------------------------------------
+//     MÉTODOS PÚBLICOS
+// ---------------------------------------
+
+Cliente.prototype.getPaqueteActual = function () {
+  return this._getPaquete();
+};
+
+Cliente.prototype.tienePaqueteVigente = function () {
+  const paquete = this._getPaquete();
+  return paquete && !paquete.estaAgotado() && !paquete.estaVencido();
+};
+
+Cliente.prototype.getPrestamosRecibidos = function () {
+  return this._getPrestamosRecibidos();
+};
+
+Cliente.prototype.getPrestamosOtorgados = function () {
+  return this._getPrestamosOtorgados();
+};
+
+Cliente.prototype.getPrestamosRecibidosVigentes = function (fecha = new Date()) {
+  return this._getPrestamosRecibidos().filter((p) => {
+    if (!p) return false;
+
+    if (typeof p.estaVigente === "function") {
+      return p.estaVigente();
+    }
+    if (typeof p.estaVigenteEn === "function") {
+      return p.estaVigenteEn(fecha);
+    }
+    // fallback: if has estaVencidoEn and estaAgotado
+    if (typeof p.estaVencidoEn === "function") {
+      const vencido = p.estaVencidoEn(fecha);
+      const agotado = typeof p.estaAgotado === "function" ? p.estaAgotado() : p.getCantidad && p.getCantidad() === 0;
+      return !vencido && !agotado;
+    }
+    return true;
+  });
+};
+
+
+Cliente.prototype.tienePrestamoVigente = function () {
+  return this.getPrestamosRecibidosVigentes().length > 0;
+};
+
+Cliente.prototype._getPrestamosRecibidosPublic = function () {
+  return this._getPrestamosRecibidos();
+};
+
+Cliente.prototype._getPrestamosOtorgadosPublic = function () {
+  return this._getPrestamosOtorgados();
 };
 
 module.exports = Cliente;
