@@ -33,7 +33,6 @@ const Cliente = function (nombreCompleto, numeroLinea, saldoInicial = 0) {
   //      MÉTODOS PRIVADOS
   // -------------------------
 
-  // Paquete activo → no agotado y no vencido
   const _tienePaqueteActivo = () => {
     return _paquete && !_paquete.estaAgotado() && !_paquete.estaVencido();
   };
