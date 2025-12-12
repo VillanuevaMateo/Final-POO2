@@ -77,3 +77,112 @@ describe("Gestor de Préstamos", () => {
     ).toThrow("El donante no tiene un paquete activo");
   });
 });
+
+describe("Gestor de Préstamos - Casos borde", () => {
+  test("no debe permitir prestar si el receptor tiene un paquete activo", () => {
+    const gestor = new GestorPrestamos();
+
+    const donante = new Cliente("Donante", "111", 1000);
+    const receptor = new Cliente("Receptor", "222", 1000);
+
+    donante.comprarPaquete(5, 100, 30, 100);
+    receptor.comprarPaquete(5, 100, 30, 100);
+
+    expect(() =>
+      gestor.otorgarPrestamo(donante, receptor, "internet", 1)
+    ).toThrow("El receptor ya tiene un paquete activo");
+  });
+
+  test("no debe permitir prestar si el receptor tiene un préstamo vigente", () => {
+    const gestor = new GestorPrestamos();
+
+    const donante = new Cliente("Donante", "111", 1000);
+    const receptor = new Cliente("Receptor", "222", 1000);
+
+    donante.comprarPaquete(5, 100, 30, 100);
+
+    const otroPrestamo = new Prestamo(
+      "internet",
+      2,
+      new Date(),
+      new Date(Date.now() + 100000),
+      donante,
+      receptor
+    );
+    receptor._registrarPrestamoRecibido(otroPrestamo);
+
+    expect(() =>
+      gestor.otorgarPrestamo(donante, receptor, "internet", 1)
+    ).toThrow("El receptor ya tiene un préstamo vigente");
+  });
+
+  test("debe permitir prestar si el receptor tiene un paquete vencido", () => {
+    const gestor = new GestorPrestamos();
+
+    const donante = new Cliente("Donante", "111", 1000);
+    const receptor = new Cliente("Receptor", "222", 1000);
+
+    donante.comprarPaquete(5, 100, 30, 100);
+
+    receptor.comprarPaquete(5, 100, -10, 100);
+
+    expect(() =>
+      gestor.otorgarPrestamo(donante, receptor, "internet", 1)
+    ).not.toThrow();
+  });
+
+  test("debe permitir prestar si el receptor tiene un préstamo vencido", () => {
+    const gestor = new GestorPrestamos();
+
+    const donante = new Cliente("Donante", "111", 1000);
+    const receptor = new Cliente("Receptor", "222", 1000);
+
+    donante.comprarPaquete(5, 100, 30, 100);
+
+    const prestamoVencido = new Prestamo(
+      "internet",
+      1,
+      new Date(Date.now() - 200000),
+      new Date(Date.now() - 100000),
+      donante,
+      receptor
+    );
+    receptor._registrarPrestamoRecibido(prestamoVencido);
+
+    expect(() =>
+      gestor.otorgarPrestamo(donante, receptor, "internet", 1)
+    ).not.toThrow();
+  });
+
+  test("no debe permitir prestar tipos inválidos", () => {
+    const gestor = new GestorPrestamos();
+
+    const donante = new Cliente("Donante", "111", 1000);
+    const receptor = new Cliente("Receptor", "222", 1000);
+
+    donante.comprarPaquete(5, 100, 30, 100);
+
+    expect(() => gestor.otorgarPrestamo(donante, receptor, "sms", 2)).toThrow(
+      "Tipo de préstamo inválido"
+    );
+  });
+
+  test("la fecha de vencimiento del préstamo debe coincidir con la del paquete del donante", () => {
+    const gestor = new GestorPrestamos();
+
+    const donante = new Cliente("Donante", "111", 1000);
+    const receptor = new Cliente("Receptor", "222", 1000);
+
+    donante.comprarPaquete(5, 100, 10, 100);
+
+    const prestamo = gestor.otorgarPrestamo(donante, receptor, "internet", 1);
+
+    const paqueteDonante = donante._getPaquete();
+
+    const fechaEsperada = new Date(paqueteDonante.fechaDeVencimiento());
+
+    expect(prestamo.fechaDeVencimiento().toDateString()).toBe(
+      fechaEsperada.toDateString()
+    );
+  });
+});

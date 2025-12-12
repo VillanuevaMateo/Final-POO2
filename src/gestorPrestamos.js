@@ -1,8 +1,6 @@
 const Prestamo = require("./prestamo");
 
-const GestorPrestamos = function () {
-
-};
+const GestorPrestamos = function () {};
 
 // ---------------------------------------
 //            MÉTODO PRINCIPAL
@@ -31,10 +29,17 @@ GestorPrestamos.prototype.otorgarPrestamo = function (
     throw new Error("El donante no tiene suficientes minutos para prestar");
   }
 
+  if (
+    receptor._getPaquete() &&
+    !receptor._getPaquete().estaAgotado() &&
+    !receptor._getPaquete().estaVencido()
+  ) {
+    throw new Error("El receptor ya tiene un paquete activo");
+  }
+
   const fechaInicio = new Date();
-  const fechaVencimiento = this._calcularFechaVencimientoPaquete(
-    paqueteDonante
-  );
+  const fechaVencimiento =
+    this._calcularFechaVencimientoPaquete(paqueteDonante);
 
   const prestamo = new Prestamo(
     tipo,
