@@ -16,6 +16,10 @@ GestorPrestamos.prototype.otorgarPrestamo = function (
   if (!paqueteDonante) {
     throw new Error("El donante no tiene un paquete activo");
   }
+  
+  if (paqueteDonante.estaVencido() || paqueteDonante.estaAgotado()) {
+    throw new Error("El donante no tiene un paquete activo");
+  }
 
   if (this._tienePrestamoVigente(receptor)) {
     throw new Error("El receptor ya tiene un préstamo vigente");

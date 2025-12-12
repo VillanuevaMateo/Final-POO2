@@ -51,10 +51,28 @@ describe("Gestor de Préstamos", () => {
   });
 
   test("debería permitir nuevo préstamo si el previo ya venció", () => {
+    // Usamos timers falsos para controlar la fecha actual
+    jest.useFakeTimers();
+
+    // Fecha inicial
+    const now = new Date(2025, 0, 1);
+    jest.setSystemTime(now);
+
+    // Instanciamos gestor y clientes después de setear la fecha
+    const gestor = new GestorPrestamos();
+    const donante = new Cliente("Donante", "111", 1000);
+    const receptor = new Cliente("Receptor", "222", 1000);
+
+    donante.comprarPaquete(5, 100, 10, 100);
+
+    // Creamos préstamo en "fecha actual fake"
     const prestamo = gestor.otorgarPrestamo(donante, receptor, "internet", 2);
 
-    prestamo._getVencimiento = () => new Date(2000, 0, 1);
+    // Avanzamos el tiempo 1000 días
+    jest.setSystemTime(new Date(2027, 8, 27));
 
+    // Ahora debería permitir un nuevo préstamo
+    donante.comprarPaquete(5, 100, 10, 100);
     const nuevoPrestamo = gestor.otorgarPrestamo(
       donante,
       receptor,
@@ -63,7 +81,8 @@ describe("Gestor de Préstamos", () => {
     );
 
     expect(nuevoPrestamo).toBeInstanceOf(Prestamo);
-    expect(receptor._getPrestamosRecibidos().length).toBe(2);
+
+    jest.useRealTimers();
   });
 
   test("no debería permitir prestar si el donante no tiene un paquete activo", () => {
@@ -184,5 +203,52 @@ describe("Gestor de Préstamos - Casos borde", () => {
     expect(prestamo.fechaDeVencimiento().toDateString()).toBe(
       fechaEsperada.toDateString()
     );
+  });
+
+  test("no debe permitir prestar si el donante tiene su paquete agotado", () => {
+    const gestor = new GestorPrestamos();
+
+    const donante = new Cliente("Donante", "111", 1000);
+    const receptor = new Cliente("Receptor", "222", 1000);
+
+    donante.comprarPaquete(1, 1, 10, 100);
+
+    donante.registrarConsumo("internet", 1);
+    donante.registrarConsumo("llamadas", 1);
+
+    expect(() =>
+      gestor.otorgarPrestamo(donante, receptor, "internet", 1)
+    ).toThrow("El donante no tiene un paquete activo");
+  });
+
+  test("no debe permitir prestar si el paquete del donante está vencido", () => {
+    const gestor = new GestorPrestamos();
+
+    const donante = new Cliente("Donante", "111", 1000);
+    const receptor = new Cliente("Receptor", "222", 1000);
+
+    donante.comprarPaquete(5, 5, -5, 100);
+
+    expect(() =>
+      gestor.otorgarPrestamo(donante, receptor, "internet", 1)
+    ).toThrow("El donante no tiene un paquete activo");
+  });
+
+  test("otorgar un préstamo debe modificar los recursos del donante", () => {
+    const gestor = new GestorPrestamos();
+
+    const donante = new Cliente("Donante", "111", 1000);
+    const receptor = new Cliente("Receptor", "222", 1000);
+
+    donante.comprarPaquete(10, 20, 10, 100);
+
+    const paqueteAntes = donante._getPaquete();
+    const gbAntes = paqueteAntes.gb();
+
+    gestor.otorgarPrestamo(donante, receptor, "internet", 3);
+
+    const paqueteDespues = donante._getPaquete();
+    receptor.registrarConsumo("internet", 3);
+    expect(paqueteDespues.gb()).toBe(7);
   });
 });

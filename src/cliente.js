@@ -40,10 +40,37 @@ const Cliente = function (nombreCompleto, numeroLinea, saldoInicial = 0) {
 
   this._registrarPrestamoOtorgado = (prestamo) => {
     _historialPrestamosOtorgados.push(prestamo);
+
+    const paqueteDonante = this._getPaquete();
+    const cantidad = prestamo.cantidadPrestada();
+    const tipo = prestamo.tipoPrestamo();
+
+    if (!paqueteDonante) return;
+
+    if (tipo === "internet") {
+      paqueteDonante.descontarConsumo("internet", cantidad);
+    } else if (tipo === "llamadas") {
+      paqueteDonante.descontarConsumo("llamadas", cantidad);
+    }
   };
 
   this._registrarPrestamoRecibido = (prestamo) => {
     _historialPrestamosRecibidos.push(prestamo);
+
+    const cantidad = prestamo.cantidadPrestada();
+    const tipo = prestamo.tipoPrestamo();
+    const duracionDias = Math.ceil(
+      (prestamo.fechaDeVencimiento() - new Date()) / (1000 * 60 * 60 * 24)
+    );
+
+    const nuevoPaquete = new Paquete(
+      tipo === "internet" ? cantidad : 0,
+      tipo === "llamadas" ? cantidad : 0,
+      duracionDias,
+      0
+    );
+
+    this._setPaquete(nuevoPaquete, false);
   };
 
   // -------------------------
@@ -59,8 +86,8 @@ const Cliente = function (nombreCompleto, numeroLinea, saldoInicial = 0) {
   this._registrarConsumoEnHistorial = (consumo) => {
     _historialConsumos.push(consumo);
   };
-  
-this.tienePaqueteActivo = () => _tienePaqueteActivo();
+
+  this.tienePaqueteActivo = () => _tienePaqueteActivo();
 };
 
 // ---------------------------------------
@@ -181,7 +208,9 @@ Cliente.prototype.getPrestamosOtorgados = function () {
   return this._getPrestamosOtorgados();
 };
 
-Cliente.prototype.getPrestamosRecibidosVigentes = function (fecha = new Date()) {
+Cliente.prototype.getPrestamosRecibidosVigentes = function (
+  fecha = new Date()
+) {
   return this._getPrestamosRecibidos().filter((p) => {
     if (!p) return false;
 
@@ -194,13 +223,15 @@ Cliente.prototype.getPrestamosRecibidosVigentes = function (fecha = new Date()) 
     // fallback: if has estaVencidoEn and estaAgotado
     if (typeof p.estaVencidoEn === "function") {
       const vencido = p.estaVencidoEn(fecha);
-      const agotado = typeof p.estaAgotado === "function" ? p.estaAgotado() : p.getCantidad && p.getCantidad() === 0;
+      const agotado =
+        typeof p.estaAgotado === "function"
+          ? p.estaAgotado()
+          : p.getCantidad && p.getCantidad() === 0;
       return !vencido && !agotado;
     }
     return true;
   });
 };
-
 
 Cliente.prototype.tienePrestamoVigente = function () {
   return this.getPrestamosRecibidosVigentes().length > 0;

@@ -1,7 +1,7 @@
 const Prestamo = require("../src/prestamo");
 const Cliente = require("../src/Cliente");
 
-describe("Prestamo", () => {
+describe("Prestamo - Iniciación", () => {
   test("debería crearse con tipo, cantidad, fechas y referencias a donante y receptor", () => {
     const donante = new Cliente("Ana Pérez", "0987654321", 200);
     const receptor = new Cliente("Juan Valdez", "0987654321", 200);
